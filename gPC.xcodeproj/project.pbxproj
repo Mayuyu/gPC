@@ -28,6 +28,9 @@
 		3047D2A318A4A647000ECC7B /* gPC */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gPC; sourceTree = BUILT_PRODUCTS_DIR; };
 		3047D2A618A4A647000ECC7B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3047D2A818A4A647000ECC7B /* gPC.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = gPC.1; sourceTree = "<group>"; };
+		3068D7AF18A521C500CA07BD /* dynamicVector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dynamicVector.h; sourceTree = "<group>"; };
+		3068D7B018A52ADE00CA07BD /* list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; };
+		3068D7B118A52AFD00CA07BD /* dynamicMatrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dynamicMatrix.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +64,9 @@
 			isa = PBXGroup;
 			children = (
 				3047D2A618A4A647000ECC7B /* main.cpp */,
+				3068D7AF18A521C500CA07BD /* dynamicVector.h */,
+				3068D7B118A52AFD00CA07BD /* dynamicMatrix.h */,
+				3068D7B018A52ADE00CA07BD /* list.h */,
 				3047D2A818A4A647000ECC7B /* gPC.1 */,
 			);
 			path = gPC;
@@ -225,6 +231,7 @@
 				3047D2AE18A4A647000ECC7B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
