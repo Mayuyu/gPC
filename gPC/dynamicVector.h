@@ -9,8 +9,8 @@
 #ifndef gPC_dynamicVector_h
 #define gPC_dynamicVector_h
 
-#include<stdio.h>
-#include<math.h>
+#include <cstdio>
+#include <cmath>
 
 void print(double d){
     printf("%f  ",d);

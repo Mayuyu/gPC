@@ -29,7 +29,6 @@
 		3047D2A618A4A647000ECC7B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3047D2A818A4A647000ECC7B /* gPC.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = gPC.1; sourceTree = "<group>"; };
 		3068D7AF18A521C500CA07BD /* dynamicVector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dynamicVector.h; sourceTree = "<group>"; };
-		3068D7B018A52ADE00CA07BD /* list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = list.h; sourceTree = "<group>"; };
 		3068D7B118A52AFD00CA07BD /* dynamicMatrix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dynamicMatrix.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,7 +65,6 @@
 				3047D2A618A4A647000ECC7B /* main.cpp */,
 				3068D7AF18A521C500CA07BD /* dynamicVector.h */,
 				3068D7B118A52AFD00CA07BD /* dynamicMatrix.h */,
-				3068D7B018A52ADE00CA07BD /* list.h */,
 				3047D2A818A4A647000ECC7B /* gPC.1 */,
 			);
 			path = gPC;
