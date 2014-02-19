@@ -95,6 +95,21 @@ const dynamicMatrix<T> operator-(const dynamicMatrix<T>&u){
 }  //  negative of a dynamicMatrix
 
 template<class T>
+const dynamicVector<T> operator*(const dynamicMatrix<T>&u, const dynamicVector<T>&v){
+    dynamicVector<T> tmp(v.dim(),0.0);
+    for (int i=0; i<tmp.dim(); i++) {
+            T sum=0.0;
+            for (int k=0; k<u.width(); k++) {
+                sum+=u(i,k,"read")*v[k];
+            }
+            tmp(i)=sum;
+    }
+    return tmp;
+}  //  dynamicMatrix times dynamicMatrix
+
+
+
+template<class T>
 void print(const dynamicMatrix<T>&v){
     for(int i = 0;i < v.height(); i++){
         for(int j = 0;j < v.width(); j++)
