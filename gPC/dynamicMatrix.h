@@ -105,8 +105,23 @@ const dynamicVector<T> operator*(const dynamicMatrix<T>&u, const dynamicVector<T
             tmp(i)=sum;
     }
     return tmp;
-}  //  dynamicMatrix times dynamicMatrix
+}  //  dynamicMatrix times dynamicVector
 
+
+template<class T>
+const dynamicMatrix<T> operator*(const dynamicMatrix<T>&u, const dynamicMatrix<T>&v){
+    dynamicMatrix<T> tmp(u.height(),v.width(),0.0);
+    for (int i=0; i<tmp.height(); i++) {
+        for (int j=0; j<tmp.width(); j++) {
+            T sum=0.0;
+            for (int k=0; k<u.width(); k++) {
+                sum+=u(i,k,"read")*v(k,j,"read");
+            }
+            tmp(i,j)=sum;
+        }
+    }
+    return tmp;
+}  //  dynamicMatrix times dynamicMatrix
 
 
 template<class T>
@@ -241,5 +256,75 @@ inverse(const dynamicMatrix<T>&A){
     return Ainverse/det(A);
 }  //  inverse using Cramer's rule
 
+
+
+double pythag(const double a, const double b) {
+    double absa=fabs(a), absb=fabs(b);
+    return (absa > absb ? absa*sqrt(1.0+(absb/absa)*(absb/absa)) :
+            (absb == 0.0 ? 0.0 : absb*sqrt(1.0+(absa/absb)*(absa/absb))));
+}
+
+double sign(double a) {
+    if (a < 0) {
+        return -1.0;
+    }
+    else {
+        return 1.0;
+    }
+}
+double SIGN(double a, double b) {
+    return fabs(a)*sign(b);
+}
+
+
+void tqli(dynamicVector<double>& d, dynamicVector<double>& e, dynamicMatrix<double>& z) {
+        int m,l,iter,i,k, n=d.dim();
+        double s,r,p,g,f,dd,c,b;
+        const double EPS=std::numeric_limits<double>::epsilon();
+        for (i=1;i<n;i++) e(i-1)=e[i];
+        e(n-1)=0.0;
+        for (l=0;l<n;l++) {
+            iter=0;
+            do {
+                for (m=l;m<n-1;m++) {
+                    dd=fabs(d[m])+fabs(d[m+1]);
+                    if (fabs(e[m]) <= EPS*dd) break;
+                }
+                if (m != l) {
+                    if (iter++ == 30) throw("Too many iterations in tqli");
+                    g=(d[l+1]-d[l])/(2.0*e[l]);
+                    r=pythag(g,1.0);
+                    g=d[m]-d[l]+e[l]/(g+SIGN(r,g));
+                    s=c=1.0;
+                    p=0.0;
+                    for (i=m-1;i>=l;i--) {
+                        f=s*e[i];
+                        b=c*e[i];
+                        e(i+1)=(r=pythag(f,g));
+                        if(r==0.0){
+                            d(i+1) -= p;
+                            e(m)=0.0;
+                            break;
+                        }
+                        s=f/r;
+                        c=g/r;
+                        g=d[i+1]-p;
+                        r=(d[i]-g)*s+2.0*c*b;
+                        d(i+1)=g+(p=s*r);
+                        g=c*r-b;
+                            for (k=0;k<n;k++) {
+                                f=z(k,i+1);
+                                z(k,i+1)=s*z(k,i,"read")+c*f;
+                                z(k,i)=c*z(k,i,"read")-s*f;
+                            }
+                    }
+                    if (r == 0.0 && i >= l) continue;
+                    d(l) -= p;
+                    e(l)=g;
+                    e(m)=0.0;
+                }
+            } while (m != l);
+        }
+}
 
 #endif

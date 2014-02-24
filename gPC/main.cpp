@@ -12,7 +12,7 @@
 
 using namespace std;
 
-const double epsilon=0.00000001;
+const double epsilon=numeric_limits<double>::epsilon();
 
 int M=102;
 int N=102;
@@ -89,15 +89,20 @@ void initial(dynamicMatrix<dynamicVector<T> >& u) {
 }
 
 template <class T>
-void config(dynamicMatrix<T>& L) {
-    for (int i=0; i<L.height(); i++) {
+void config(dynamicMatrix<T>& Lm, dynamicMatrix<T>& Lp, dynamicMatrix<T>& P) {
+    dynamicVector<T> Ld(Lm.height(), 0.0), Le(Lm.height(), 0.0);
+    for (int i=0; i<Le.dim(); i++) {
         if (i!=0) {
-            L(i,i-1)=-(double)i/sqrt(4.0*i*i-1);
-        }
-        if (i!=L.height()-1) {
-            L(i,i+1)=-(double)(i+1)/sqrt((2.0*i+1)*(2.0*i+3));
+            Le(i)=-(double)i/sqrt(4.0*i*i-1);
         }
     }
+    tqli(Ld, Le, P);
+    for (int i=0; i<Lm.height(); i++) {
+        Lm(i,i)=(Ld[i]-fabs(Ld[i]))*0.5;
+        Lp(i,i)=(Ld[i]+fabs(Ld[i]))*0.5;
+    }
+    Lm=P*Lm*inverse(P);
+    Lp=P*Lp*inverse(P);
 }
 
 template <class T>
@@ -205,43 +210,38 @@ void solve(dynamicMatrix<T>& u, const double& r) {
 }
 
 template <class T>
-void march(dynamicMatrix<dynamicVector<T> >& u) {
+void solve(dynamicMatrix<dynamicVector<T> >& u) {
     int order=u(0,0,"read").dim();
-    dynamicMatrix<dynamicVector<T> > tmp(u);
-    dynamicMatrix<T> L(order,order,0.0), I(order,order,0.0);
+    dynamicMatrix<T> Lm(order,order,0.0), Lp(order,order,0.0),I(order,order,0.0), P(order,order,0.0);
     for (int i=0; i<I.width(); i++) {
         I(i,i)=1.0;
+        P(i,i)=1.0;
     }
-    config(L);
+    config(Lm,Lp,P);
     initial(u);
     for (int t=0; t<timesteps; t++) {
-        for (int i=1; i<u.height()-1; i++) {
-            for (int j=1; j<u.width()-1; j++) {
-                double x,v,c1,c2,Vl,Vr;
-                dynamicVector<T> u1(order,0.0),u2(order,0.0),ux(order,0.0),uv(order,0.0);
-                v=bottomv+j*dv;
-                x=leftx+i*dx;
-                c1=C1(x,v);
-                if (c1>0) {
-                    u1=u(i,j,"read");
-                    Vl=VL(x-0.5*dx);
-                    Vr=VR(x-0.5*dx);
-                    if ((Vl-Vr)>epsilon) {
-                        if ((v*v+2.0*(Vr-Vl))>epsilon) {
-                            double vl=sqrt(v*v+2.0*(Vr-Vl));
-                            int k=locate(vl);
-                            if (k==-1) {
-                                u2=0.0;
-                            }
-                            else {
-                                u2=(bottomv+(k+1)*dv-vl)*u(i-1,k,"read")/dv+(vl-bottomv-k*dv)*u(i-1,k+1,"read")/dv;
-                            }
-                        }
-                        else {
-                            u2=u(i,locate(-v),"read");
-                        }
-                    }
-                    else if ((Vl-Vr)<-epsilon) {
+        march(u, Lm, Lp, I);
+    }
+}
+
+
+template <class T>
+void march(dynamicMatrix<dynamicVector<T> >& u, const dynamicMatrix<T>& Lm, const dynamicMatrix<T>& Lp,const dynamicMatrix<T>& I) {
+    int order=u(0,0,"read").dim();
+    dynamicMatrix<dynamicVector<T> > tmp(u);
+    for (int i=1; i<u.height()-1; i++) {
+        for (int j=1; j<u.width()-1; j++) {
+            double x,v,c1,c2,Vl,Vr;
+            dynamicVector<T> u1(order,0.0),u2(order,0.0),ux(order,0.0),uvm(order,0.0),uvp(order,0.0);
+            v=bottomv+j*dv;
+            x=leftx+i*dx;
+            c1=C1(x,v);
+            if (c1>0) {
+                u1=u(i,j,"read");
+                Vl=VL(x-0.5*dx);
+                Vr=VR(x-0.5*dx);
+                if ((Vl-Vr)>epsilon) {
+                    if ((v*v+2.0*(Vr-Vl))>epsilon) {
                         double vl=sqrt(v*v+2.0*(Vr-Vl));
                         int k=locate(vl);
                         if (k==-1) {
@@ -252,29 +252,29 @@ void march(dynamicMatrix<dynamicVector<T> >& u) {
                         }
                     }
                     else {
-                        u2=u(i-1,j,"read");
+                        u2=u(i,locate(-v),"read");
                     }
                 }
-                else if (c1<0) {
-                    u2=u(i,j,"read");
-                    Vl=VL(x+0.5*dx);
-                    Vr=VR(x+0.5*dx);
-                    if ((Vl-Vr)<-epsilon) {
-                        if ((v*v+2.0*(Vl-Vr))>epsilon) {
-                            double vr=-sqrt(v*v+2.0*(Vl-Vr));
-                            int k=locate(vr);
-                            if (k==-1) {
-                                u1=0.0;
-                            }
-                            else {
-                                u1=(bottomv+(k+1)*dv-vr)*u(i+1,k,"read")/dv+(vr-bottomv-k*dv)*u(i+1,k+1,"read")/dv;
-                            }
-                        }
-                        else {
-                            u1=u(i,locate(-v),"read");
-                        }
+                else if ((Vl-Vr)<-epsilon) {
+                    double vl=sqrt(v*v+2.0*(Vr-Vl));
+                    int k=locate(vl);
+                    if (k==-1) {
+                        u2=0.0;
                     }
-                    else if ((Vl-Vr)>epsilon) {
+                    else {
+                        u2=(bottomv+(k+1)*dv-vl)*u(i-1,k,"read")/dv+(vl-bottomv-k*dv)*u(i-1,k+1,"read")/dv;
+                    }
+                }
+                else {
+                    u2=u(i-1,j,"read");
+                }
+            }
+            else if (c1<0) {
+                u2=u(i,j,"read");
+                Vl=VL(x+0.5*dx);
+                Vr=VR(x+0.5*dx);
+                if ((Vl-Vr)<-epsilon) {
+                    if ((v*v+2.0*(Vl-Vr))>epsilon) {
                         double vr=-sqrt(v*v+2.0*(Vl-Vr));
                         int k=locate(vr);
                         if (k==-1) {
@@ -285,34 +285,51 @@ void march(dynamicMatrix<dynamicVector<T> >& u) {
                         }
                     }
                     else {
-                        u1=u(i+1,j,"read");
+                        u1=u(i,locate(-v),"read");
+                    }
+                }
+                else if ((Vl-Vr)>epsilon) {
+                    double vr=-sqrt(v*v+2.0*(Vl-Vr));
+                    int k=locate(vr);
+                    if (k==-1) {
+                        u1=0.0;
+                    }
+                    else {
+                        u1=(bottomv+(k+1)*dv-vr)*u(i+1,k,"read")/dv+(vr-bottomv-k*dv)*u(i+1,k+1,"read")/dv;
                     }
                 }
                 else {
-                    u1=0;;
-                    u2=0;
+                    u1=u(i+1,j,"read");
                 }
-                ux=(u1-u2)/dx;
-                c2=(VR(x-0.5*dx)-VL(x+0.5*dx))/dx;
-                if (c2>0.0) {
-                    uv=(u(i,j,"read")-u(i,j-1,"read"))/dv;
-                }
-                else {
-                    uv=(u(i,j+1,"read")-u(i,j,"read"))/dv;
-                }
-                tmp(i,j)=u(i,j,"read")-dt*(c1*I*ux+c2*I*uv+0.1*L*uv);
+            }
+            else {
+                u1=0;
+                u2=0;
+            }
+            ux=(u1-u2)/dx;
+            c2=(VR(x-0.5*dx)-VL(x+0.5*dx))/dx;
+            uvm=(u(i,j+1,"read")-u(i,j,"read"))/dv;
+            uvp=(u(i,j,"read")-u(i,j-1,"read"))/dv;
+            if (c2>epsilon) {
+                tmp(i,j)=u(i,j,"read")-dt*(c1*I*ux+c2*I*uvp+0.1*(Lm+Lp)*uvp);
+            }
+            else if (c2<-epsilon){
+                
+                tmp(i,j)=u(i,j,"read")-dt*(c1*I*ux+c2*I*uvm+0.1*(Lm+Lp)*uvm);
+            }
+            else {
+                tmp(i,j)=u(i,j,"read")-dt*(c1*I*ux+0.1*(Lm*uvm+Lp*uvp));
             }
         }
-        u=tmp;
     }
+    u=tmp;
 }
-
 
 template <class T>
 void MC(dynamicMatrix<T>& u, const int m) {
     dynamicMatrix<T> tmp(u);
     for (int i=0; i<m; i++) {
-        march(tmp, ran());
+        solve(tmp, ran());
         u+=tmp;
     }
     u=((double)(1.0/m))*u;
@@ -370,12 +387,12 @@ void exact(dynamicMatrix<T>& u,const T& r) {
 
 
 int main(int argc, const char * argv[]) {
-    srand((unsigned)time(NULL));
+//    srand((unsigned)time(NULL));
     dynamicMatrix<double> u(M,N,0.0),uL0(M,N,0.0),test(M,N,0.0),f(M,N,0.0);
 //    for (int k=3; k<13; k++) {
 //        dynamicVector<double> I(k,0.0);
 //        dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-//        march(uL);
+//        solve(uL);
 //        for (int i=0; i<uL.height(); i++) {
 //            for (int j=0; j<uL.width(); j++) {
 //                uL0(i,j)=uL(i,j,"read")[0];
@@ -383,25 +400,25 @@ int main(int argc, const char * argv[]) {
 //        }
 //        cout << norm1(uL0-test) << endl;
 //        test=uL0;
-//        
 //    }
-    dynamicVector<double> I(5,0.0);
+    dynamicVector<double> I(4,0.0);
     dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-//    march(uL);
-//    for (int i=0; i<uL.height(); i++) {
-//        for (int j=0; j<uL.width(); j++) {
-//            uL0(i,j)=uL(i,j,"read")[0];
-//        }
-//    }
+    solve(uL);
+    for (int i=0; i<uL.height(); i++) {
+        for (int j=0; j<uL.width(); j++) {
+            uL0(i,j)=uL(i,j,"read")[0];
+        }
+    }
 //
 //    for (int k=1; k<30; k++) {
-//        MC(u, 10000);
-//        cout << norm1(u-uL0) << endl;
+        MC(u, 10000);
+        cout << norm1(u-uL0) << endl;
 //    }
 //    return 0;
-    solve(u, 0.0);
-    exact(test, 0.0);
-    cout << norm1(u-test) << endl;
+//    solve(u, 0.0);
+//    exact(test, 0.0);
+//    cout << norm1(u-test) << endl;
+
     return 0;
 }
 
