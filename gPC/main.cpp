@@ -91,9 +91,10 @@ void initial(dynamicMatrix<dynamicVector<T> >& u) {
 template <class T>
 void config(dynamicMatrix<T>& Lm, dynamicMatrix<T>& Lp, dynamicMatrix<T>& P) {
     dynamicVector<T> Ld(Lm.height(), 0.0), Le(Lm.height(), 0.0);
+    dynamicMatrix<int> K(Lm.height(), Lm.height(), 0);
     for (int i=0; i<Le.dim(); i++) {
         if (i!=0) {
-            Le(i)=-(double)i/sqrt(4.0*i*i-1);
+            Le(i)=-(double)i/sqrt(4.0*i*i-1.0);
         }
     }
     tqli(Ld, Le, P);
@@ -101,8 +102,9 @@ void config(dynamicMatrix<T>& Lm, dynamicMatrix<T>& Lp, dynamicMatrix<T>& P) {
         Lm(i,i)=(Ld[i]-fabs(Ld[i]))*0.5;
         Lp(i,i)=(Ld[i]+fabs(Ld[i]))*0.5;
     }
-    Lm=P*Lm*inverse(P);
-    Lp=P*Lp*inverse(P);
+    dynamicMatrix<double> iP=invert(LUP(P, K),K);
+    Lm=P*Lm*iP;
+    Lp=P*Lp*iP;
 }
 
 template <class T>
@@ -387,38 +389,30 @@ void exact(dynamicMatrix<T>& u,const T& r) {
 
 
 int main(int argc, const char * argv[]) {
-//    srand((unsigned)time(NULL));
-    dynamicMatrix<double> u(M,N,0.0),uL0(M,N,0.0),test(M,N,0.0),f(M,N,0.0);
-//    for (int k=3; k<13; k++) {
-//        dynamicVector<double> I(k,0.0);
-//        dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-//        solve(uL);
-//        for (int i=0; i<uL.height(); i++) {
-//            for (int j=0; j<uL.width(); j++) {
-//                uL0(i,j)=uL(i,j,"read")[0];
-//            }
-//        }
-//        cout << norm1(uL0-test) << endl;
-//        test=uL0;
-//    }
-    dynamicVector<double> I(4,0.0);
-    dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-    solve(uL);
-    for (int i=0; i<uL.height(); i++) {
-        for (int j=0; j<uL.width(); j++) {
-            uL0(i,j)=uL(i,j,"read")[0];
-        }
-    }
-//
-//    for (int k=1; k<30; k++) {
-        MC(u, 10000);
-        cout << norm1(u-uL0) << endl;
-//    }
-//    return 0;
-//    solve(u, 0.0);
-//    exact(test, 0.0);
-//    cout << norm1(u-test) << endl;
-
+    //    srand((unsigned)time(NULL));
+    //    dynamicMatrix<double> u(M,N,0.0),uL0(M,N,0.0),test(M,N,0.0),f(M,N,0.0);
+    //    for (int k=12; k<15; k++) {
+    //        dynamicVector<double> I(k,0.0);
+    //        dynamicMatrix<dynamicVector<double> > uL(M,N,I);
+    //        solve(uL);
+    //        for (int i=0; i<uL.height(); i++) {
+    //            for (int j=0; j<uL.width(); j++) {
+    //                uL0(i,j)=uL(i,j,"read")[0];
+    //            }
+    //        }
+    //        cout << norm1(uL0-test) << endl;
+    //        test=uL0;
+    //    }
+    //    dynamicVector<double> I(4,0.0);
+    //    dynamicMatrix<dynamicVector<double> > uL(M,N,I);
+    //    solve(uL);
+    //    for (int i=0; i<uL.height(); i++) {
+    //        for (int j=0; j<uL.width(); j++) {
+    //            uL0(i,j)=uL(i,j,"read")[0];
+    //        }
+    //    }
+    //    for (int k=1; k<30; k++) {
+    //    MC(u, 10000);
     return 0;
 }
 
@@ -443,12 +437,9 @@ int main(int argc, const char * argv[]) {
 
 
 
-
-
-
 /*******************************
  
-    smooth potential
+ smooth potential
  
  *****************************/
 

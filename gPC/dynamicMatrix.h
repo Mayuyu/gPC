@@ -98,11 +98,11 @@ template<class T>
 const dynamicVector<T> operator*(const dynamicMatrix<T>&u, const dynamicVector<T>&v){
     dynamicVector<T> tmp(v.dim(),0.0);
     for (int i=0; i<tmp.dim(); i++) {
-            T sum=0.0;
-            for (int k=0; k<u.width(); k++) {
-                sum+=u(i,k,"read")*v[k];
-            }
-            tmp(i)=sum;
+        T sum=0.0;
+        for (int k=0; k<u.width(); k++) {
+            sum+=u(i,k,"read")*v[k];
+        }
+        tmp(i)=sum;
     }
     return tmp;
 }  //  dynamicMatrix times dynamicVector
@@ -278,53 +278,53 @@ double SIGN(double a, double b) {
 
 
 void tqli(dynamicVector<double>& d, dynamicVector<double>& e, dynamicMatrix<double>& z) {
-        int m,l,iter,i,k, n=d.dim();
-        double s,r,p,g,f,dd,c,b;
-        const double EPS=std::numeric_limits<double>::epsilon();
-        for (i=1;i<n;i++) e(i-1)=e[i];
-        e(n-1)=0.0;
-        for (l=0;l<n;l++) {
-            iter=0;
-            do {
-                for (m=l;m<n-1;m++) {
-                    dd=fabs(d[m])+fabs(d[m+1]);
-                    if (fabs(e[m]) <= EPS*dd) break;
-                }
-                if (m != l) {
-                    if (iter++ == 30) throw("Too many iterations in tqli");
-                    g=(d[l+1]-d[l])/(2.0*e[l]);
-                    r=pythag(g,1.0);
-                    g=d[m]-d[l]+e[l]/(g+SIGN(r,g));
-                    s=c=1.0;
-                    p=0.0;
-                    for (i=m-1;i>=l;i--) {
-                        f=s*e[i];
-                        b=c*e[i];
-                        e(i+1)=(r=pythag(f,g));
-                        if(r==0.0){
-                            d(i+1) -= p;
-                            e(m)=0.0;
-                            break;
-                        }
-                        s=f/r;
-                        c=g/r;
-                        g=d[i+1]-p;
-                        r=(d[i]-g)*s+2.0*c*b;
-                        d(i+1)=g+(p=s*r);
-                        g=c*r-b;
-                            for (k=0;k<n;k++) {
-                                f=z(k,i+1);
-                                z(k,i+1)=s*z(k,i,"read")+c*f;
-                                z(k,i)=c*z(k,i,"read")-s*f;
-                            }
+    int m,l,iter,i,k, n=d.dim();
+    double s,r,p,g,f,dd,c,b;
+    const double EPS=std::numeric_limits<double>::epsilon();
+    for (i=1;i<n;i++) e(i-1)=e[i];
+    e(n-1)=0.0;
+    for (l=0;l<n;l++) {
+        iter=0;
+        do {
+            for (m=l;m<n-1;m++) {
+                dd=fabs(d[m])+fabs(d[m+1]);
+                if (fabs(e[m]) <= EPS*dd) break;
+            }
+            if (m != l) {
+                if (iter++ == 30) throw("Too many iterations in tqli");
+                g=(d[l+1]-d[l])/(2.0*e[l]);
+                r=pythag(g,1.0);
+                g=d[m]-d[l]+e[l]/(g+SIGN(r,g));
+                s=c=1.0;
+                p=0.0;
+                for (i=m-1;i>=l;i--) {
+                    f=s*e[i];
+                    b=c*e[i];
+                    e(i+1)=(r=pythag(f,g));
+                    if(r==0.0){
+                        d(i+1) -= p;
+                        e(m)=0.0;
+                        break;
                     }
-                    if (r == 0.0 && i >= l) continue;
-                    d(l) -= p;
-                    e(l)=g;
-                    e(m)=0.0;
+                    s=f/r;
+                    c=g/r;
+                    g=d[i+1]-p;
+                    r=(d[i]-g)*s+2.0*c*b;
+                    d(i+1)=g+(p=s*r);
+                    g=c*r-b;
+                    for (k=0;k<n;k++) {
+                        f=z(k,i+1);
+                        z(k,i+1)=s*z(k,i,"read")+c*f;
+                        z(k,i)=c*z(k,i,"read")-s*f;
+                    }
                 }
-            } while (m != l);
-        }
+                if (r == 0.0 && i >= l) continue;
+                d(l) -= p;
+                e(l)=g;
+                e(m)=0.0;
+            }
+        } while (m != l);
+    }
 }
 
 #endif
