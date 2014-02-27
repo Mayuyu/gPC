@@ -9,6 +9,7 @@
 #include <iostream>
 #include <ctime>
 #include "dynamicMatrix.h"
+#include "gauss_wgts.h"
 
 using namespace std;
 
@@ -388,9 +389,22 @@ void exact(dynamicMatrix<T>& u,const T& r) {
 }
 
 
+template <class T>
+void pseudoSpec(dynamicMatrix<T>& u, int m) {
+    dynamicVector<T> x(m, 0.0), w(m, 0.0);
+    dynamicMatrix<T> tmp(u.height(), u.width(), 0.0);
+    gauleg(-1.0, 1.0, x, w);
+    for (int i=0; i<m; i++) {
+        solve(u, x[i]);
+        tmp+=w[i]*u;
+    }
+    u=0.5*tmp;
+}
+
+
 int main(int argc, const char * argv[]) {
     //    srand((unsigned)time(NULL));
-    //    dynamicMatrix<double> u(M,N,0.0),uL0(M,N,0.0),test(M,N,0.0),f(M,N,0.0);
+    dynamicMatrix<double> u(M,N,0.0),uL0(M,N,0.0),test(M,N,0.0),f(M,N,0.0);
     //    for (int k=12; k<15; k++) {
     //        dynamicVector<double> I(k,0.0);
     //        dynamicMatrix<dynamicVector<double> > uL(M,N,I);
@@ -403,15 +417,18 @@ int main(int argc, const char * argv[]) {
     //        cout << norm1(uL0-test) << endl;
     //        test=uL0;
     //    }
-    //    dynamicVector<double> I(4,0.0);
-    //    dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-    //    solve(uL);
-    //    for (int i=0; i<uL.height(); i++) {
-    //        for (int j=0; j<uL.width(); j++) {
-    //            uL0(i,j)=uL(i,j,"read")[0];
-    //        }
-    //    }
-    //    for (int k=1; k<30; k++) {
+    dynamicVector<double> I(7,0.0);
+    dynamicMatrix<dynamicVector<double> > uL(M,N,I);
+    solve(uL);
+    for (int i=0; i<uL.height(); i++) {
+        for (int j=0; j<uL.width(); j++) {
+            uL0(i,j)=uL(i,j,"read")[0];
+        }
+    }
+    pseudoSpec(u, 80);
+//    solve(u, -1.0);
+    cout << norm1(u-uL0) <<endl;
+    
     //    MC(u, 10000);
     return 0;
 }
