@@ -8,24 +8,30 @@
 
 #include <iostream>
 #include <ctime>
+#include <random>
 #include "dynamicMatrix.h"
 #include "gauss_wgts.h"
+#include <fstream>
 
 using namespace std;
 
 const double epsilon=numeric_limits<double>::epsilon();
 
-int M=102;
-int N=102;
-int timesteps=100;
-double leftx=-1.515;
-double bottomv=-1.515;
-double dt=0.01;
-double dx=0.03;
-double dv=0.03;
+int M=202;
+int N=202;
+int timesteps=200;
+double leftx=-1.5075;
+double bottomv=-1.5075;
+double dt=0.005;
+double dx=0.015;
+double dv=0.015;
 
 double ran() {
     return (double)(rand()/(double)(RAND_MAX/2))-1.0;
+}
+
+double ran(uniform_real_distribution<double> uniform_dist, default_random_engine e1) {
+    return uniform_dist(e1);
 }
 
 double C1(double x, double v) {
@@ -329,10 +335,10 @@ void march(dynamicMatrix<dynamicVector<T> >& u, const dynamicMatrix<T>& Lm, cons
 }
 
 template <class T>
-void MC(dynamicMatrix<T>& u, const int m) {
+void MC(dynamicMatrix<T>& u, const int m, uniform_real_distribution<double> uniform_dist, default_random_engine e1) {
     dynamicMatrix<T> tmp(u);
     for (int i=0; i<m; i++) {
-        solve(tmp, ran());
+        solve(tmp, ran(uniform_dist, e1));
         u+=tmp;
     }
     u=((double)(1.0/m))*u;
@@ -403,33 +409,42 @@ void pseudoSpec(dynamicMatrix<T>& u, int m) {
 
 
 int main(int argc, const char * argv[]) {
+    random_device rd;
+    default_random_engine e1(rd());
+    uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
     //    srand((unsigned)time(NULL));
     dynamicMatrix<double> u(M,N,0.0),uL0(M,N,0.0),test(M,N,0.0),f(M,N,0.0);
-    //    for (int k=12; k<15; k++) {
-    //        dynamicVector<double> I(k,0.0);
-    //        dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-    //        solve(uL);
-    //        for (int i=0; i<uL.height(); i++) {
-    //            for (int j=0; j<uL.width(); j++) {
-    //                uL0(i,j)=uL(i,j,"read")[0];
-    //            }
-    //        }
-    //        cout << norm1(uL0-test) << endl;
-    //        test=uL0;
-    //    }
-    dynamicVector<double> I(7,0.0);
-    dynamicMatrix<dynamicVector<double> > uL(M,N,I);
-    solve(uL);
-    for (int i=0; i<uL.height(); i++) {
-        for (int j=0; j<uL.width(); j++) {
-            uL0(i,j)=uL(i,j,"read")[0];
+    MC(u, 10000, uniform_dist, e1);
+    std::ofstream fout1("Galerkin.txt");
+    for (int k=1; k<7; k++) {
+        dynamicVector<double> I(k,0.0);
+        dynamicMatrix<dynamicVector<double> > uL(M,N,I);
+        solve(uL);
+        for (int i=0; i<uL.height(); i++) {
+            for (int j=0; j<uL.width(); j++) {
+                uL0(i,j)=uL(i,j,"read")[0];
+            }
         }
+        fout1 << k << " " << norm1(uL0-u) << endl;
     }
-    pseudoSpec(u, 80);
-//    solve(u, -1.0);
-    cout << norm1(u-uL0) <<endl;
-    
-    //    MC(u, 10000);
+//    dynamicVector<double> I(7,0.0);
+//    dynamicMatrix<dynamicVector<double> > uL(M,N,I);
+//    solve(uL);
+//    for (int i=0; i<uL.height(); i++) {
+//        for (int j=0; j<uL.width(); j++) {
+//            uL0(i,j)=uL(i,j,"read")[0];
+//        }
+//    }
+//    pseudoSpec(u, 80);
+
+//
+    ofstream fout2("pseudoSpec.txt");
+    for (int i=5; i<20; i++) {
+        pseudoSpec(f, i);
+        fout2 << i << " " << norm1(f-u) << endl;
+    }
+    fout2.close();
+
     return 0;
 }
 

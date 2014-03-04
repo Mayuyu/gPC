@@ -45,7 +45,6 @@ public:
 };
 
 
-
 template<class T, int N>
 vector<T,N>::vector(const T& a){
     for(int i = 0; i < N; i++)

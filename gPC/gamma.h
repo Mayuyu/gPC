@@ -9,7 +9,7 @@
 #ifndef gPC_gamma_h
 #define gPC_gamma_h
 
-#include "vector.h"
+#include "dynamicVector.h"
 
 double gammln(const double xx) {                           //return ln(gamma(xx)) at xx, when xx>0
     double x,tmp,y,ser;
@@ -23,7 +23,8 @@ double gammln(const double xx) {                           //return ln(gamma(xx)
 }
 
 double factrl(const int n) {                                //Returns the value n! as a floating-point number.
-    static vector<double, 171> a;
+//    static vector<double, 171> a;
+    static dynamicVector<double> a(171, 0.0);
     static bool init=true;
     if (init) {
         init = false;
@@ -36,7 +37,8 @@ double factrl(const int n) {                                //Returns the value 
 
 double factln(const int n) {                                 //Returns ln.n!.
     static const int NTOP=2000;
-    static vector<double, NTOP> a;
+//    static vector<double, NTOP> a;
+    static dynamicVector<double> a(NTOP, 0.0);
     static bool init=true;
     if (init) {
         init = false;

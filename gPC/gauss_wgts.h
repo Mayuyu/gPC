@@ -9,7 +9,6 @@
 #ifndef gPC_gauss_wgts_h
 #define gPC_gauss_wgts_h
 
-#include "dynamicVector.h"
 #include "gamma.h"
 
 template <class T>
